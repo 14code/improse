@@ -1,0 +1,30 @@
+{
+  "name": "14code/improse",
+  "description": "Image Processing Service",
+  "minimum-stability": "stable",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "David Hoppe",
+      "email": "dh@14co.de"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "I4code\\Improse\\": "src/"
+    },
+    "files": ["src/functions.php"]
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "I4code\\Improse\\Tests\\": "tests/"
+    }
+  },
+  "require": {
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^9.5",
+    "friendsofphp/php-cs-fixer": "^2.17",
+    "phpstan/phpstan": "^0.12.66"
+  }
+}
