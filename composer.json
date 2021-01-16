@@ -18,7 +18,8 @@
   "autoload-dev": {
     "psr-4": {
       "I4code\\Improse\\Tests\\": "tests/"
-    }
+    },
+    "files": ["tests/function_overrides.php"]
   },
   "require": {
   },
