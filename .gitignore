@@ -3,3 +3,4 @@ composer.phar
 /.phpunit.result.cache
 /.composer/
 /.idea/
+/tests/assets/tmp/*

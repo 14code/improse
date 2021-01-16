@@ -5,16 +5,19 @@ namespace I4code\Improse;
 
 class Image
 {
+    protected static $sizeLimit;
+
     protected $url;
     protected $localFile;
-    protected $sizeLimit;
+
+    private $error;
 
     /**
      * Image constructor.
      */
     public function __construct(string $url)
     {
-        $this->sizeLimit = 10000000; // 10M
+        static::$sizeLimit = 10000000; // 10M
 
         if (filter_var($url, FILTER_VALIDATE_URL) === FALSE) {
             if (!file_exists($url) || !is_file($url)) {
@@ -41,6 +44,31 @@ class Image
     }
 
     /**
+     * @return string
+     */
+    public function getError(): ?string
+    {
+        return $this->error;
+    }
+
+    /**
+     * @return bool
+     */
+    public function hasError(): bool
+    {
+        $error = $this->getError();
+        return !empty($error);
+    }
+
+    /**
+     * @param string $error
+     */
+    public function setError(string $error): void
+    {
+        $this->error = $error;
+    }
+
+    /**
      * @return int
      */
     public function getSize(): int
@@ -48,60 +76,120 @@ class Image
         return $this->size;
     }
 
-    public function verifyDownloadUrl(string $url)
+    public static function verifyDownloadUrl(string $url)
     {
         if (false === filter_var($url, FILTER_VALIDATE_URL)) {
-            if ($this->sizeLimit < filesize($url)) {
+            if (!file_exists($url) || !is_file($url)) {
+                throw new \RuntimeException("File $url does not exist");
+            }
+            if (static::$sizeLimit < filesize($url)) {
                 throw new \RuntimeException("File $url size exceeds limit of "
-                    . $this->sizeLimit);
+                    . static::$sizeLimit);
+            }
+            if (!static::validateJpg($url)) {
+                throw new \RuntimeException("Local file $url is no valid JPG image");
             }
         } else {
-            $headers = get_headers($this->getUrl(), 1);
+            $headers = get_headers($url, 1);
             if (!isset($headers['Content-Type'])
                 || ('image/jpeg' != $headers['Content-Type'])) {
                 throw new \RuntimeException("Content-Type wrong or not set in URL $url");
             }
             if (!isset($headers['Content-Length'])
-                || ($this->sizeLimit < $headers['Content-Length'])) {
+                || (static::$sizeLimit < $headers['Content-Length'])) {
                 throw new \RuntimeException("Content-Length set in URL $url"
-                    . " or exceeds limit of " . $this->sizeLimit
-                    . " (vs. {$headers['Content-Length']})");
+                    . " or exceeds limit of " . static::$sizeLimit);
             }
         }
     }
 
-    public function download($dir)
+    public static function verifyDir(string $dir)
     {
         if (!file_exists($dir) || !is_dir($dir)) {
             throw new \RuntimeException("Folder $dir does not exist");
         }
+    }
 
-        $file = "$dir/" . uniqid() . '.jpg';
-        while (file_exists($file)) {
-            $file = "$dir/" . uniqid() . '.jpg';
+    public static function generateNewFilename(string $dir)
+    {
+        static::verifyDir($dir);
+
+        $filename = "$dir/" . uniqid() . '.jpg';
+        while (file_exists($filename)) {
+            $filename = "$dir/" . uniqid() . '.jpg';
         }
 
-        $this->verifyDownloadUrl($this->getUrl());
+        return $filename;
+    }
+
+    public function download(string $dir)
+    {
+        static::verifyDir($dir);
+        static::verifyDownloadUrl($this->getUrl());
+
+        $file = static::generateNewFilename($dir);
 
         $fileContents = file_get_contents($this->getUrl());
-        file_put_contents($file, $fileContents);
-
-        if (file_exists($file)) {
-            $this->localFile = $file;
+        if (false !== $fileContents) {
+            if (file_put_contents($file, $fileContents)) {
+                if (file_exists($file)) {
+                    $this->localFile = $file;
+                    return true;
+                }
+            }
         }
+
+        $this->setError('File download failed');
+        return false;
     }
 
     public function isDownloaded()
     {
         $file = $this->getLocalFile();
-        if (!empty($file) && file_exists($file)) {
-            return true;
+
+        if ($this->hasError() || empty($file) || !file_exists($file)) {
+            return false;
         }
-        return false;
+
+        return true;
+    }
+
+    public static function validateJpg(string $file)
+    {
+        $valid = true;
+
+        if (file_exists($file) && is_file($file)) {
+
+            // Check using getimagesize() - not working on imcomplete files!
+            if (function_exists('getimagesize')) {
+                try {
+                    $size = getimagesize($file);
+                    if (!is_array($size) || !isset($size['mime'])
+                            || ('image/jpeg' != $size['mime'])) {
+                        $valid = false;
+                    }
+                } catch (\Throwable $t) {}
+            }
+
+            // check for the existence of the EOI segment header at the end of the file
+            $fileHandle = fopen($file, 'r');
+            if (0 !== fseek($fileHandle, -2, SEEK_END)
+                    || "\xFF\xD9" !== fread($fileHandle, 2)) {
+                $valid = false;
+            }
+            fclose($fileHandle);
+
+        }
+
+        return $valid;
     }
 
     public function isValid()
     {
-        return false;
+        $valid = $this->isDownloaded();
+        if ($valid) {
+            $valid = static::validateJpg($this->getLocalFile());
+        }
+        return $valid;
     }
 }

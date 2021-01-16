@@ -8,10 +8,14 @@ use PHPUnit\Framework\TestCase;
 
 class ImageTest extends TestCase
 {
+    protected $dataDir;
     protected $tmpDir;
+    protected $testHost;
 
     public function setUp(): void
     {
+        $this->testHost = 'improse.phpunit.test';
+        $this->dataDir = __DIR__ . '/assets/data';
         $this->tmpDir = __DIR__ . '/assets/tmp';
     }
 
@@ -31,8 +35,7 @@ class ImageTest extends TestCase
     public function generateMockfile()
     {
         $url = 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/28/JPG_Test.jpg/815px-JPG_Test.jpg';
-        $image = new Image($url);
-        $image->verifyDownloadUrl($url);
+        Image::verifyDownloadUrl($url);
 
         $file = $this->tmpDir . '/' . uniqid() . '.jpg';
         file_put_contents($file, file_get_contents($url));
@@ -54,7 +57,7 @@ class ImageTest extends TestCase
 
     public function testConstructor()
     {
-        $url = 'https://placebut.net/';
+        $url = "https://{$this->testHost}/";
         $image = new Image($url);
         $this->assertInstanceOf(Image::class, $image);
         $this->assertEquals($url, $image->getUrl());
@@ -66,9 +69,17 @@ class ImageTest extends TestCase
         $this->assertEquals($url, $image->getUrl());
     }
 
+    public function testVerifyDownloadUrl()
+    {
+        // file exceeds limit of 10M
+        $url = 'https://upload.wikimedia.org/wikipedia/commons/2/28/JPG_Test.jpg';
+        $this->expectException(\RuntimeException::class);
+        Image::verifyDownloadUrl($url);
+    }
+
     public function testIsDownloaded()
     {
-        $url = 'https://placebut.net/';
+        $url = "https://{$this->testHost}/";
         $image = new Image($url);
         $this->assertEmpty($image->getLocalFile());
         $this->assertFalse($image->isDownloaded());
@@ -80,6 +91,13 @@ class ImageTest extends TestCase
         $url = 'https://sdfsf.sdfgg.ssffd/sdfsf';
         $image = new Image($url);
         $image->download($this->tmpDir);
+    }
+
+    public function testHasError()
+    {
+        $url = $this->generateMockfile();
+        $image = new Image($url);
+        $this->assertFalse($image->hasError());
     }
 
     public function testDownload()
@@ -99,18 +117,40 @@ class ImageTest extends TestCase
         $this->assertFileEquals($url, $file);
     }
 
+    public function testValidateJpg()
+    {
+        $file = $this->dataDir . '/test.txt';
+        $this->assertFalse(Image::validateJpg($file));
+
+        $file = $this->dataDir . '/corrupted.jpg';
+        $this->assertFalse(Image::validateJpg($file));
+
+        $file = $this->dataDir . '/image.jpg';
+        $this->assertTrue(Image::validateJpg($file));
+    }
+
     /**
      * Image::isValid() should return true when file is valid image
      * and false in other cases
      */
     public function testIsValid()
     {
-        $url = 'https://upload.wikimedia.org/wikipedia/commons/2/28/JPG_Test.jpg';
-        // file above to large
+        // image should return true
+        $url = $this->dataDir . '/image.jpg';
+        $image = new Image($url);
+        $image->download($this->tmpDir);
+        $this->assertTrue($image->isValid());
+
+        // valid image should return true
         $url = 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/28/JPG_Test.jpg/815px-JPG_Test.jpg';
         $image = new Image($url);
         $image->download($this->tmpDir);
-        $this->assertFalse($image->isValid());
+        $this->assertTrue($image->isValid());
+
+        $url = "https://{$this->testHost}/image.jpg";
+        $image = new Image($url);
+        $image->download($this->tmpDir);
+        $this->assertTrue($image->isValid());
     }
 
 }
