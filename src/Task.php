@@ -5,12 +5,64 @@ namespace I4code\Improse;
 
 class Task
 {
+    protected $commandHandler;
+
     protected $command;
     protected $arguments;
 
-    public function generateOutpoutFilename(string $fileName): string
-    {}
+    /**
+     * Task constructor.
+     * @param CommandHandler $commandHandler
+     */
+    public function __construct(CommandHandler $commandHandler)
+    {
+        $this->commandHandler = $commandHandler;
+    }
 
-    public function run(string $inputFile): string
-    {}
+    /**
+     * @return array
+     */
+    public function getArguments(): array
+    {
+        return $this->arguments;
+    }
+
+    /**
+     * @param array $arguments
+     */
+    public function setArguments(array $arguments): void
+    {
+        $this->arguments = $arguments;
+    }
+
+    /**
+     * @return string
+     */
+    public function getCommand(): string
+    {
+        return $this->command;
+    }
+
+    /**
+     * @param string mixed $command
+     */
+    public function setCommand(string $command): void
+    {
+        $this->command = $command;
+    }
+
+    /**
+     * @return CommandHandler
+     */
+    public function getCommandHandler(): CommandHandler
+    {
+        return $this->commandHandler;
+    }
+
+    public function run(string $inputFilename): string
+    {
+        $commandHandler = $this->getCommandHandler();
+        return $commandHandler->runCommand($this->getCommand(), $this->getArguments());
+    }
+
 }
