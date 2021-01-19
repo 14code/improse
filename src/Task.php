@@ -22,7 +22,7 @@ class Task
     /**
      * @return array
      */
-    public function getArguments(): array
+    public function getArguments(): ?array
     {
         return $this->arguments;
     }
@@ -38,7 +38,7 @@ class Task
     /**
      * @return string
      */
-    public function getCommand(): string
+    public function getCommand(): ?string
     {
         return $this->command;
     }
@@ -61,8 +61,11 @@ class Task
 
     public function run(string $inputFilename): string
     {
+        $command = $this->getCommand();
         $commandHandler = $this->getCommandHandler();
-        return $commandHandler->runCommand($this->getCommand(), $this->getArguments());
+        if ($commandHandler->hasCommand($command)) {
+            return $commandHandler->runCommand($command, $this->getArguments());
+        }
     }
 
 }
