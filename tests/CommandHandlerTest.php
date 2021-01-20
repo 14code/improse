@@ -26,7 +26,7 @@ class CommandHandlerTest extends TestCase
     public function testRunCommand()
     {
         $workDir = __DIR__ . '/assets/tmp';
-        $inputFile = generateWorkImage();
+        $inputFile = generateImageFile();
 
         $commandHandler = $this->getMockForAbstractClass(CommandHandler::class, [$workDir]);
         $outputFile = $commandHandler->runCommand($inputFile, 'copy', []);

@@ -10,6 +10,8 @@ class Job
     protected $image;
     protected $tasks = [];
 
+    protected $commandHandlers = [];
+
     /**
      * Job constructor.
      * @param $image
@@ -38,13 +40,39 @@ class Job
     {
         return $this->tasks;
     }
+    public function addCommandHandler(CommandHandler $commandHandler)
+    {
+        $this->commandHandlers[] = $commandHandler;
+    }
+
+    /**
+     * @return array
+     */
+    public function getCommandHandlers(): array
+    {
+        return $this->commandHandlers;
+    }
+
+    public function getCommandHandler(): CommandHandler
+    {
+        foreach ($this->getCommandHandlers() as $commandHandler) {
+            return $commandHandler;
+        }
+        throw new \RuntimeException('No CommandHandlers defined');
+    }
 
     public function process()
     {
         $image = $this->getImage();
-        foreach ($this->getTasks() as $task) {
-           $task->run($image);
+        $commandHandler = $this->getCommandHandler();
+        $outputFile = null;
+        foreach ($this->getTasks() as $taskData) {
+            $task = new Task($commandHandler);
+            $task->setCommand($taskData['command']);
+            $task->setArguments($taskData['arguments']);
+            $outputFile = $task->run($image->getLocalFile());
         }
+        return $outputFile;
     }
 
 }

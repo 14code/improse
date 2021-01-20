@@ -5,11 +5,29 @@ namespace I4code\Improse\Tests;
 
 use I4code\Improse\Image;
 
-function generateWorkImage()
+function getWorkDir(): string
 {
-    $workDir = __DIR__ . '/assets/tmp';
-    $testImage = __DIR__ . '/assets/data/image.jpg';
-    $inputFilename = Image::generateNewFilename($workDir);
-    copy($testImage, $inputFilename);
-    return $inputFilename;
+    return __DIR__ . '/assets/tmp';
 }
+
+function getTestImage()
+{
+    return __DIR__ . '/assets/data/image.jpg';
+}
+
+function generateImageFile(): string
+{
+    $workDir = getWorkDir();
+    $testImage = getTestImage();
+    $filename = Image::generateNewFilename($workDir);
+    copy($testImage, $filename);
+    return $filename;
+}
+
+function generateImageObject(): Image
+{
+    $testImage = getTestImage();
+    $image = new Image($testImage);
+    return $image;
+}
+
