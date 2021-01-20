@@ -18,14 +18,15 @@ class JobRepository
         $this->factory = $factory;
     }
 
-    public function create(array $data)
+    public function add(array $data)
     {
-        return $this->factory->create($data);
+        $job = $this->factory->create($data);
+        array_push($this->repository, $job);
     }
 
-    public function add(Job $job)
+    public function findAll(): array
     {
-        array_push($this->repository, $job);
+        return $this->repository;
     }
 
     public function getNext(): Job
