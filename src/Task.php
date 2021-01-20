@@ -64,7 +64,7 @@ class Task
         $command = $this->getCommand();
         $commandHandler = $this->getCommandHandler();
         if ($commandHandler->hasCommand($command)) {
-            return $commandHandler->runCommand($command, $this->getArguments());
+            return $commandHandler->runCommand($inputFilename, $command, $this->getArguments());
         }
     }
 
