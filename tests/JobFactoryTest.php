@@ -20,6 +20,10 @@ class JobFactoryTest extends TestCase
         $jobFactory = new JobFactory();
         $job = $jobFactory->create($jobData);
         $this->assertInstanceOf(Job::class, $job);
+        $this->assertNotEmpty($job->getId());
+        $this->assertEquals('created', $job->getState());
+        $this->assertNotEmpty($job->getCreated());
+        $this->assertNotEmpty($job->getLastchanged());
     }
 
 }

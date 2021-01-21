@@ -15,6 +15,8 @@ class JobFactory
         if (!isset($data['tasks']) or !is_array($data['tasks'])) {
             throw new \RuntimeException('Tasks not specified');
         }
-        return new Job($data['image'], $data['tasks']);
+        $id = uniqid('job_');
+        $job = new Job($id, $data['image'], $data['tasks']);
+        return $job;
     }
 }
