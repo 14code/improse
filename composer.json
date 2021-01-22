@@ -27,5 +27,8 @@
     "phpunit/phpunit": "^9.5",
     "friendsofphp/php-cs-fixer": "^2.17",
     "phpstan/phpstan": "^0.12.66"
+  },
+  "scripts": {
+    "test": "vendor/bin/phpunit tests"
   }
 }
