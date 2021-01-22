@@ -10,11 +10,26 @@ use PHPUnit\Framework\TestCase;
 
 class JobRepositoryTest extends TestCase
 {
-
-    public function testAdd()
+    public function generateRepository()
     {
         $jobFactoryMock = generateJobFactoryMock();
         $jobRepository = new JobRepository($jobFactoryMock);
+
+        $jobData = [];
+        $jobRepository->add($jobData);
+
+        $jobData = [];
+        $jobRepository->add($jobData);
+
+        $jobData = [];
+        $jobRepository->add($jobData);
+
+        return $jobRepository;
+    }
+
+    public function testAdd()
+    {
+        $jobRepository = $this->generateRepository();
         $count = count($jobRepository->findAll());
 
         $jobData = [];
@@ -28,29 +43,17 @@ class JobRepositoryTest extends TestCase
         }
     }
 
-    public function testGetNext()
+    public function testFindAll()
     {
-        // What is the next job:
-        // - the last added?
-        // - the first inserted?
-        $jobFactoryMock = generateJobFactoryMock();
-        $jobRepository = new JobRepository($jobFactoryMock);
+        $jobRepository = $this->generateRepository();
 
-        $jobData = [];
-        $jobRepository->add($jobData);
-
-        $jobData = [];
-        $jobRepository->add($jobData);
-
-        $jobData = [];
-        $jobRepository->add($jobData);
-
-        $job = $jobRepository->getNext();
-        $this->assertInstanceOf(Job::class, $job);
+        $allJobs = $jobRepository->findAll();
+        $this->assertIsArray($allJobs);
+        $this->assertEquals(3, count($allJobs));
 
         // Ensure that instances in repository are different
         $last = null;
-        foreach ($jobRepository->findAll() as $job) {
+        foreach ($allJobs as $job) {
             if ($last instanceof Job) {
                 $this->assertNotSame($last, $job);
                 $this->assertNotEquals($last->getId(), $job->getId());
@@ -58,5 +61,21 @@ class JobRepositoryTest extends TestCase
             $last = $job;
         }
 
+    }
+
+    /**
+     * Should return first job with state 'created'
+     */
+    public function testGetNext()
+    {
+        $jobRepository = $this->generateRepository();
+
+        $job = $jobRepository->getNext();
+        $this->assertInstanceOf(Job::class, $job);
+
+        // Verify that job is the first in repository
+        $allJobs = $jobRepository->findAll();
+        $this->assertEquals('created', $job->getState());
+        $this->assertSame($allJobs[1], $job);
     }
 }

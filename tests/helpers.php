@@ -37,6 +37,8 @@ function generateImageObject(): Image
 function generateJobFactoryMock()
 {
     $testCase = new class extends TestCase {
+        private $jobIncrement = 0;
+
         public function createJobFactoryMock()
         {
             $ref = $this;
@@ -45,6 +47,12 @@ function generateJobFactoryMock()
                 function () use ($ref) {
                     $mock = $ref->createMock(Job::class);
                     $mock->method('getId')->willReturn(uniqid());
+                    if (1 > $ref->jobIncrement) {
+                        $mock->method('getState')->willReturn('processed');
+                    } else {
+                        $mock->method('getState')->willReturn('created');
+                    }
+                    $ref->jobIncrement++;
                     return $mock;
                 }
             );

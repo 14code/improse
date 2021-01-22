@@ -31,7 +31,11 @@ class JobRepository
 
     public function getNext(): Job
     {
-        return end($this->repository);
+        return current(array_filter($this->findAll(), function ($job) {
+            if ('created' == $job->getState()) {
+                return $job;
+            }
+        }));
     }
 
 }
