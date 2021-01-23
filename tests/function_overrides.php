@@ -18,7 +18,7 @@ function translateUrlToLocalfile($url)
 }
 
 function file_get_contents(string $filename,bool $use_include_path = true,
-                           ?resource $context = null, ?int $offset = 0, ?int $maxlen = null)
+                           $context = null, ?int $offset = 0, ?int $maxlen = null)
 {
     if ($localFile = translateUrlToLocalfile($filename)) {
         $filename = $localFile;
@@ -36,7 +36,7 @@ function file_get_contents(string $filename,bool $use_include_path = true,
  * @param resource|null $context
  * @return array|false|string[]
  */
-function get_headers(string $url, int $format = null, resource $context = null)
+function get_headers(string $url, int $format = 0, $context = null)
 {
     if (($filename = translateUrlToLocalfile($url))
             && function_exists('getimagesize')) {
