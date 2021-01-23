@@ -30,5 +30,9 @@ jobs:
       if: steps.composer-cache.outputs.cache-hit != 'true'
       run: composer install --prefer-dist --no-progress --no-suggest
 
+    - name: Setup PHP
+      with:
+        php-version: '7.4'
+
     - name: Run test suite
       run: composer run-script test
