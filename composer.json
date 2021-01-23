@@ -29,6 +29,9 @@
     "phpstan/phpstan": "^0.12.66"
   },
   "scripts": {
-    "test": "vendor/bin/phpunit tests"
+    "test": [
+      "php -v",
+      "vendor/bin/phpunit tests"
+    ]
   }
 }
