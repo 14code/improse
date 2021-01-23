@@ -3,6 +3,9 @@ declare(strict_types=1);
 
 namespace I4code\Improse;
 
+use RuntimeException;
+use Throwable;
+
 class Image
 {
     protected static $sizeLimit;
@@ -21,7 +24,7 @@ class Image
 
         if (filter_var($url, FILTER_VALIDATE_URL) === FALSE) {
             if (!file_exists($url) || !is_file($url)) {
-                throw new \RuntimeException("URL $url is invalid or local file does not exist");
+                throw new RuntimeException("URL $url is invalid or local file does not exist");
             }
         }
         $this->url = $url;
@@ -80,24 +83,24 @@ class Image
     {
         if (false === filter_var($url, FILTER_VALIDATE_URL)) {
             if (!file_exists($url) || !is_file($url)) {
-                throw new \RuntimeException("File $url does not exist");
+                throw new RuntimeException("File $url does not exist");
             }
             if (static::$sizeLimit < filesize($url)) {
-                throw new \RuntimeException("File $url size exceeds limit of "
+                throw new RuntimeException("File $url size exceeds limit of "
                     . static::$sizeLimit);
             }
             if (!static::validateJpg($url)) {
-                throw new \RuntimeException("Local file $url is no valid JPG image");
+                throw new RuntimeException("Local file $url is no valid JPG image");
             }
         } else {
             $headers = get_headers($url, 1);
             if (!isset($headers['Content-Type'])
                 || ('image/jpeg' != $headers['Content-Type'])) {
-                throw new \RuntimeException("Content-Type wrong or not set in URL $url");
+                throw new RuntimeException("Content-Type wrong or not set in URL $url");
             }
             if (!isset($headers['Content-Length'])
                 || (static::$sizeLimit < $headers['Content-Length'])) {
-                throw new \RuntimeException("Content-Length set in URL $url"
+                throw new RuntimeException("Content-Length set in URL $url"
                     . " or exceeds limit of " . static::$sizeLimit);
             }
         }
@@ -106,7 +109,7 @@ class Image
     public static function verifyDir(string $dir)
     {
         if (!file_exists($dir) || !is_dir($dir)) {
-            throw new \RuntimeException("Folder $dir does not exist");
+            throw new RuntimeException("Folder $dir does not exist");
         }
     }
 
@@ -168,7 +171,7 @@ class Image
                             || ('image/jpeg' != $size['mime'])) {
                         $valid = false;
                     }
-                } catch (\Throwable $t) {}
+                } catch (Throwable $t) {}
             }
 
             // check for the existence of the EOI segment header at the end of the file
